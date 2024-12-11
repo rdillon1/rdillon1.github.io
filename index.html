@@ -60,6 +60,38 @@
         <tbody>
             <!-- Data rows will be inserted here dynamically -->
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4">Mean</td>
+                <td id="mean-balls"></td>
+                <td id="mean-strikes"></td>
+                <td id="mean-outs"></td>
+                <td colspan="2"></td>
+                <td id="mean-relspeed"></td>
+                <td id="mean-spinrate"></td>
+                <td id="mean-spinaxis"></td>
+            </tr>
+            <tr>
+                <td colspan="4">Median</td>
+                <td id="median-balls"></td>
+                <td id="median-strikes"></td>
+                <td id="median-outs"></td>
+                <td colspan="2"></td>
+                <td id="median-relspeed"></td>
+                <td id="median-spinrate"></td>
+                <td id="median-spinaxis"></td>
+            </tr>
+            <tr>
+                <td colspan="4">Mode</td>
+                <td id="mode-balls"></td>
+                <td id="mode-strikes"></td>
+                <td id="mode-outs"></td>
+                <td colspan="2"></td>
+                <td id="mode-relspeed"></td>
+                <td id="mode-spinrate"></td>
+                <td id="mode-spinaxis"></td>
+            </tr>
+        </tfoot>
     </table>
     <script>
         async function fetchData() {
@@ -85,6 +117,7 @@
                 });
 
                 populateTable(filteredData);
+                calculateStats(filteredData);
             } catch (error) {
                 console.error('Error fetching data:', error);
                 alert('Failed to load data.');
@@ -113,6 +146,50 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function calculateStats(data) {
+            const columns = ['Balls', 'Strikes', 'Outs', 'RelSpeed', 'SpinRate', 'SpinAxis'];
+            const stats = {};
+
+            columns.forEach(col => {
+                const values = data.map(row => row[col]).filter(v => !isNaN(v)).sort((a, b) => a - b);
+                stats[col] = {
+                    mean: (values.reduce((sum, val) => sum + val, 0) / values.length) || 0,
+                    median: values.length % 2 === 0
+                        ? (values[values.length / 2 - 1] + values[values.length / 2]) / 2
+                        : values[Math.floor(values.length / 2)] || 0,
+                    mode: values.reduce((acc, val) => {
+                        acc.counts[val] = (acc.counts[val] || 0) + 1;
+                        if (acc.counts[val] > acc.maxCount) {
+                            acc.maxCount = acc.counts[val];
+                            acc.mode = val;
+                        }
+                        return acc;
+                    }, { counts: {}, maxCount: 0, mode: null }).mode || 0
+                };
+            });
+
+            document.getElementById('mean-balls').textContent = stats.Balls.mean.toFixed(2);
+            document.getElementById('mean-strikes').textContent = stats.Strikes.mean.toFixed(2);
+            document.getElementById('mean-outs').textContent = stats.Outs.mean.toFixed(2);
+            document.getElementById('mean-relspeed').textContent = stats.RelSpeed.mean.toFixed(2);
+            document.getElementById('mean-spinrate').textContent = stats.SpinRate.mean.toFixed(2);
+            document.getElementById('mean-spinaxis').textContent = stats.SpinAxis.mean.toFixed(2);
+
+            document.getElementById('median-balls').textContent = stats.Balls.median.toFixed(2);
+            document.getElementById('median-strikes').textContent = stats.Strikes.median.toFixed(2);
+            document.getElementById('median-outs').textContent = stats.Outs.median.toFixed(2);
+            document.getElementById('median-relspeed').textContent = stats.RelSpeed.median.toFixed(2);
+            document.getElementById('median-spinrate').textContent = stats.SpinRate.median.toFixed(2);
+            document.getElementById('median-spinaxis').textContent = stats.SpinAxis.median.toFixed(2);
+
+            document.getElementById('mode-balls').textContent = stats.Balls.mode;
+            document.getElementById('mode-strikes').textContent = stats.Strikes.mode;
+            document.getElementById('mode-outs').textContent = stats.Outs.mode;
+            document.getElementById('mode-relspeed').textContent = stats.RelSpeed.mode;
+            document.getElementById('mode-spinrate').textContent = stats.SpinRate.mode;
+            document.getElementById('mode-spinaxis').textContent = stats.SpinAxis.mode;
         }
     </script>
 </body>
